@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Video } from 'expo-av';
 import { useFonts } from 'expo-font';
+import * as Localization from 'expo-localization';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -90,11 +91,12 @@ export default function LoginPage() {
   const panelAnimationRef = useRef(new Animated.Value(height)).current
   const titleAnimationRef = useRef(new Animated.Value(0)).current
 
+  const locale = Localization.useLocales()[0]
 
   useEffect(() => {
     // change the locale
     // const locale = RNLocalization.getLocales()[0].languageCode
-    i18n.changeLanguage('ar')
+    i18n.changeLanguage(locale.languageCode == 'ar' ? 'ar' : 'en')
     setLoadingFont(false)
 
     // reset animations
@@ -139,7 +141,7 @@ export default function LoginPage() {
 
     setLogginIn(false);
 
-    router.replace('/home')
+    router.replace('/home/home')
   }
 
   return <View style={[Theme.body, {backgroundColor:Colors.secondary}]}>
@@ -151,8 +153,8 @@ export default function LoginPage() {
       opacity: titleAnimationRef
     }}>
       <Video source={require('@/assets/rive/title.mp4')} style={{
-        width:width * .75,
-        height:height * .3,
+        width : width  * .75,
+        height: height * .30,
       }} shouldPlay={true} isLooping={true} />
     </Animated.View>
     <Animated.View style={{
@@ -171,7 +173,6 @@ export default function LoginPage() {
       <Text style={[Theme.textLarge]}>
         {t('login_signup')}
       </Text>
-
       <Text style={[Theme.textMedium, {
         textAlign:'center',
         fontWeight:'700',
@@ -182,18 +183,12 @@ export default function LoginPage() {
         <Text style={{color:Colors.secondary, fontFamily:'Cairo'}}>{t('ls_message')}</Text>
         <Text style={{fontWeight:'900', fontSize:22}}> ”</Text>  
       </Text>
-
-      {/* <Lottie source={require('@/assets/lottie/loading.json')} style={{width:250, height:250}}
-        autoPlay={true} loop={true} /> */}
-
       <Text style={{fontFamily:'Cairo'}}></Text>
-
       <View style={{gap:10}}>
         <GoogleLoginErrorComponent visible={logginErorr} msg={t('ls_error')} onClose={() => setLogginError(false)} />
         <GoogleLoginComponent onPressed={loginWithGoogle} text={t('ls_google')} />
       </View>
     </Animated.View>
-
     <Modal isVisible={logginIn}>
       <LoadingComponent />
     </Modal>

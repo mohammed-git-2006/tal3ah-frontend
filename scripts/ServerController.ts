@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+
 const SERVER_URL = `http://redcast.local:8080`
 
 interface GoogleAuthResponse {
@@ -87,7 +88,7 @@ async function getFullUser(email : string, token : string) : Promise<FullUser|'e
 
 
     const jsonResponse : {status:boolean} & FullUser = await response.json();
-    console.log(`Json Response : ${JSON.stringify(jsonResponse)}, args : [${email}, ${token}]`)
+    // console.log(`Json Response : ${JSON.stringify(jsonResponse)}, args : [${email}, ${token}]`)
     if (!jsonResponse.status) return 'error'
 
     const {status, ...fullUser} = jsonResponse
@@ -99,6 +100,37 @@ async function getFullUser(email : string, token : string) : Promise<FullUser|'e
   }
 }
 
+type HobbiesList = [ {ar:string, en:string, icon:string} ]
 
-export { FullUser, getFullUser, loadUserFromStorage, sendGoogleToken, User, userFromString, userString };
+class ServerUtils {
+  static async  getHobbies () : Promise<HobbiesList|'error'> {
+    try {
+      const values = await fetch(`${SERVER_URL}/api/hobbies`);
+      const result = await values.json()
+      return result;
+    } catch (err) {
+      alert(`ERR : ${err}`)
+      return 'error';
+    }
+  };
+
+  static async updateHobbies(newHobbies : string[]) {
+    try {
+      const jwtToken = await AsyncStorage.getItem('key')
+      await fetch(`${SERVER_URL}/user/update`, {
+        method: 'POST',
+        headers : {
+          'Authorization' : `Bearer ${jwtToken}`,
+          'Content-type' : 'application/json'
+        },
+        body: JSON.stringify({
+          'hobbies' : newHobbies
+        })
+      })
+    } finally {}
+  }
+}
+
+
+export { FullUser, getFullUser, HobbiesList, loadUserFromStorage, sendGoogleToken, ServerUtils, User, userFromString, userString };
 
