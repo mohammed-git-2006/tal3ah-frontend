@@ -3,28 +3,28 @@ import { Ionicons } from "@expo/vector-icons";
 import { Text, View } from "react-native";
 
 
-const IconsMap = {
-  "Cars" :  "car",
-  "Movies" :  "film",
-  "Photography" :  "camera",
-  "Cooking" :  "restaurant",
-  "Gardening" :  "leaf",
-  "Reading" :  "book",
-  "Traveling" :  "airplane",
-  "Hiking" :  "walk",
-  "Painting" :  "color-palette",
-  "Music" :  "musical-notes",
-  "Dancing" :  "body",
-  "Fishing" :  "fish",
-  "Cycling" :  "bicycle",
-  "Swimming" :  "water",
-  "Chess" :  "game-controller",
-  "Camping" :  "bonfire",
-  "Collecting Stamp" : "mail-open",
-  "Bird Watchin" : "eye",
-  "Writing" :  "create",
-  "Cards" :  "card",
-};
+const IconsMap = new Map([
+  ["Cars" ,  "car"],
+  ["Movies" ,  "film"],
+  ["Photography" ,  "camera"],
+  ["Cooking" ,  "restaurant"],
+  ["Gardening" ,  "leaf"],
+  ["Reading" ,  "book"],
+  ["Traveling" ,  "airplane"],
+  ["Hiking" ,  "walk"],
+  ["Painting" ,  "color-palette"],
+  ["Music" ,  "musical-notes"],
+  ["Dancing" ,  "body"],
+  ["Fishing" ,  "fish"],
+  ["Cycling" ,  "bicycle"],
+  ["Swimming" ,  "water"],
+  ["Chess" ,  "game-controller"],
+  ["Camping" ,  "bonfire"],
+  ["Collecting Stamp", "mail-open"],
+  ["Bird Watchin", "eye"],
+  ["Writing" ,  "create"],
+  ["Cards" ,  "card"],
+]);
 
 
 function HTag ({content, index, iconName} : {content:string, index:number, iconName:string}) {
@@ -45,7 +45,7 @@ function HTag ({content, index, iconName} : {content:string, index:number, iconN
     direction:'rtl'
   }}>
 
-    <Ionicons name={iconName} size={20} color={Colors.surface} />
+    <Ionicons name={iconName as any} size={20} color={Colors.surface} />
     <Text style={[Theme.textSmall, {fontWeight:'800', color:Colors.surface}]}>
       {content}
     </Text>

@@ -29,6 +29,10 @@ function userString(response : GoogleAuthResponse) : string {
   });
 }
 
+async function getToken() : Promise<string|null> {
+  return AsyncStorage.getItem('key');
+} 
+
 function userFromString(content : string) : User | undefined {
   try { return JSON.parse(content) } catch { return undefined }
 }
@@ -101,13 +105,51 @@ async function getFullUser(email : string, token : string) : Promise<FullUser|'e
 }
 
 type HobbiesList = [ {ar:string, en:string, icon:string} ]
+type Place = {
+  cat   : string,
+  name  : string,
+  latlng: string,
+  rating: string,
+  id : string,
+}
+
+interface Meeting {
+  name          : string,
+  city          : string,
+  lat           : number,
+  lng           : number,
+  pname         : string,
+  cat           : string,
+  max           : number,
+  pid           : string,
+  time          : Date,
+  people        : string[],
+  hobbies       : string[],
+  _id?          : string,
+  author?       : string,
+  author_name?  : string,
+  code?         : string,
+};
 
 class ServerUtils {
   static async  getHobbies () : Promise<HobbiesList|'error'> {
     try {
-      const values = await fetch(`${SERVER_URL}/api/hobbies`);
-      const result = await values.json()
-      return result;
+      const currentVersion = Number.parseInt((await AsyncStorage.getItem('hv')) ?? '0')
+      const serverVersion = Number.parseInt(await (await fetch(`${SERVER_URL}/hv`)).text());
+      var result:HobbiesList|undefined = undefined; 
+
+      if(serverVersion != currentVersion)
+      {
+        const values = await fetch(`${SERVER_URL}/api/hobbies`);
+        result = await values.json()
+        AsyncStorage.setItem('hv', serverVersion.toString())
+        AsyncStorage.setItem('hobbies', JSON.stringify(result));
+      } else
+      {
+        result = JSON.parse(await AsyncStorage.getItem('hobbies') ?? '');
+      }
+
+      return result!;
     } catch (err) {
       alert(`ERR : ${err}`)
       return 'error';
@@ -129,8 +171,196 @@ class ServerUtils {
       })
     } finally {}
   }
+
+  static async getCities() : Promise<[{en:string, ar:string, lat:number, lng:number}]|"error"> {
+    try {
+      const values = await fetch(`${SERVER_URL}/api/cities`);
+      const result = await values.json()
+      return result;
+    } catch (err) {
+      alert(`ERR : ${err}`)
+      return 'error';
+    }
+  }
+
+  static async getPlaces(city:string) : Promise<Place[]|"error"> {
+    try {
+      const values = await fetch(`${SERVER_URL}/places/${city}`);
+      const result = await values.json()
+      if (!result.status) throw "Err"
+      return result.data;
+    } catch (err) {
+      alert(`ERR : ${err}`)
+      return 'error';
+    }
+  }
+
+  static async createMeeting(request:any, token:string) : Promise<boolean> {
+    
+    try {
+      const response = await fetch(`${SERVER_URL}/meetings/create`, {
+        method: 'POST',
+        headers : {
+          'Authorization' : `Bearer ${token}`,
+          'Content-type' : 'application/json'
+        },
+
+        body : JSON.stringify(request)
+      });
+
+      // alert(JSON.stringify(request))
+
+      const { status } = await response.json();
+      if (! status) throw "Error"; 
+      return true;
+    } catch (err)
+    {
+      alert(`Error : ${err}`)
+      return false;
+    }
+  }
+
+  static async getMeetings(token:string, type:"mine_live"|"engaged_live"|"mine_done"|"engaged_done") : Promise<Meeting[]> {
+    const r = await fetch(`${SERVER_URL}/user/meetings`, {
+      method:'POST',
+      headers: {
+        'Authorization' : `Bearer ${token}`,
+        'Content-type' : 'application/json',
+      },
+
+      body : JSON.stringify({type : type})
+    })
+
+    const jR = await r.json();
+    if (! jR.status) throw "Error";
+    console.log(jR.data[0])
+    return jR.data
+  }
+
+  static async getMeeting(token:string, id : string) : Promise<Meeting> {
+    const r = await fetch(`${SERVER_URL}/meeting/${id}`, {
+      method:'GET',
+      headers: {
+        'Authorization' : `Bearer ${token}`,
+        'Content-type' : 'application/json',
+      },
+    })
+
+    if (r.status != 200) {
+      throw r.status;
+    }
+
+    return await r.json()
+  }
+
+  static async getUser(token:string, email:string) : Promise<User> {
+    const r = await fetch(`${SERVER_URL}/user/${email}/info`, {
+      method:'POST',
+      headers: {
+        'Authorization' : `Bearer ${token}`,
+        'Content-type' : 'application/json',
+      },
+    });
+
+    if (r.status != 200) throw "Error";
+
+    const {status, ...user} = await r.json();
+
+    if (status != true) throw "Error 2"
+    return user as User
+  }
+
+  static async updateMeeting(id:string, token:string, max:number, name:string)  {
+    return fetch(`${SERVER_URL}/meeting/update`, {
+      method:'POST',
+      headers : {
+        'Authorization' : `Bearer ${token}`,
+        'Content-type' : 'application/json'
+      },
+
+      body : JSON.stringify({
+        name : name,
+        max : max,
+        id : id
+      })
+    });
+  }
+
+  static async deleteMeeting(id:string, token:string) : Promise<boolean> {
+    try {
+      const r = await fetch(`${SERVER_URL}/meeting/delete`, {
+        method:'POST',
+        headers : {
+          'Authorization' : `Bearer ${token}`,
+          'Content-type' : 'application/json'
+        },
+
+        body : JSON.stringify({
+          id : id
+        })
+      })
+
+      if(r.status != 200) return false;
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  static setCity(city:string) {
+    AsyncStorage.setItem("city", city)
+  }
+
+  static async getCity()  {
+    return await AsyncStorage.getItem("city")
+  }
+
+  static async leaveMeeting(token:string, id:string) {
+    try {
+      const r = await fetch(`${SERVER_URL}/meeting/leave`, {
+        method:'POST',
+        headers : {
+          'Authorization' : `Bearer ${token}`,
+          'Content-type' : 'application/json'
+        },
+
+        body : JSON.stringify({
+          id : id
+        })
+      })
+
+      if (r.status != 200) throw "Server side error"
+    } catch(err) {
+      alert(`Failed to leave the meeting`)
+    }
+  }
+
+  static async joinMeeting(token:string, id:string) : Promise<boolean>
+  {
+    try {
+      const r = await fetch(`${SERVER_URL}/meeting/join`, {
+        method:'POST',
+        headers : {
+          'Authorization' : `Bearer ${token}`,
+          'Content-type' : 'application/json'
+        },
+
+        body : JSON.stringify({
+          id : id
+        })
+      })
+
+      if (r.status != 200) throw "Not OK"
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
 }
 
 
-export { FullUser, getFullUser, HobbiesList, loadUserFromStorage, sendGoogleToken, ServerUtils, User, userFromString, userString };
+export {
+  FullUser, getFullUser, getToken, HobbiesList, loadUserFromStorage, Meeting, Place,
+  sendGoogleToken, SERVER_URL, ServerUtils, User, userFromString, userString
+};
 

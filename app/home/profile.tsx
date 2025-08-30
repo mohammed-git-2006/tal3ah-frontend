@@ -99,7 +99,7 @@ export default function ProfilePage() {
       width:width,
       height:height * .65,
       position:'absolute',
-      opacity:.25
+      opacity:.1
     }} resizeMode='cover' />
 
     <ScrollView>

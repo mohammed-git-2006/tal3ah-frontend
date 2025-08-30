@@ -72,6 +72,8 @@ export default function RootLayout() {
       <Tabs.Screen name={'home'} options={{
         title:'Home',
         tabBarLabel:'الصفحة الرئيسية',
+        
+        // headerShown:true,
         tabBarIcon : ( {focused, size} ) => <Ionicons name="home" size={size} color={focused ? Colors.secondary : Colors.onSurface} />
       }} />
 

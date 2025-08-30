@@ -2,10 +2,11 @@ import { StyleSheet } from "react-native";
 
 
 export const Colors = {
-  surface : '#FFFDF5',      // creamy white background
-  onSurface : '#d3d3d3ff',    // dark text on light background
+  surface : '#ffffffff',      // creamy white background
+  onSurface : '#d7d7d7',    // dark text on light background
   primary : '#000000',      // black primary text
   secondary : '#673AB7',    // accent (deep red stays the same)
+  secondaryShade : '#cebfebff',    // accent (deep red stays the same)
   inputSurface : '#F3F3F3', // light gray for inputs
   primaryShade : '#6B6B6B', // medium gray for secondary text
 }
@@ -34,14 +35,14 @@ export const Theme = StyleSheet.create({
     fontFamily:'Cairo',
     fontWeight:'500',
     color: Colors.primary,
-    fontSize:18,
+    fontSize:15,
   },
 
   textLarge : {
     fontFamily:'Cairo',
     fontWeight:'800',
     color: Colors.primary,
-    fontSize:22,
+    fontSize:18,
   },
 
   genericShadow : {
